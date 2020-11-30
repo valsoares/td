@@ -2,7 +2,6 @@ from player.parser import *
 from r2a.ir2a import IR2A
 
 import time
-from player.player import *
 
 class R2ANewAlgorithm1(IR2A):
 
@@ -12,7 +11,6 @@ class R2ANewAlgorithm1(IR2A):
         self.qi = []
         self.request_time = 0
         self.measured_throughput = 0
-        self.buffer = 0
 
     def handle_xml_request(self, msg):
         print("**************** handle_xml_request ****************")
@@ -30,58 +28,67 @@ class R2ANewAlgorithm1(IR2A):
     def handle_segment_size_request(self, msg):
 
         # debug
-        print('\x1b[4;37;42m' + "************* handle_segment_size_request ****************" + '\x1b[0m')
-        print('\x1b[6;37;42m' + "**************** BANDAAAA ************* " + '\x1b[0m', end='')
+        print('\r\n ************* handle_segment_size_request ****************\r\n ')
+        print('\r\n **************** BANDAAAA ************* \r\n ')
         print(self.measured_throughput)
-        print('\x1b[6;37;42m' + "**************** QI ************* " + '\x1b[0m', end='')
+        print('\r\n **************** QI ************* \r\n ')
         print(self.qi)
 
         # Iniciar tempo
         self.request_time = time.perf_counter()
 
-        # Monitorar buffer
-        # print('\x1b[6;37;42m' + "**************** BUFFER ************* " + '\x1b[0m', end='')
-        # print(self.buffer)
-        
-
         # Escolha da banda
         x = 0
         qualidade_selecionada = 0
-        for i in self.qi:
-            tam = len(self.qi)-1-x
-            if tam < 0:
-                tam = 0
+        if self.whiteboard.get_amount_video_to_play() > 6: 
+            #Aqui eu to pegando o tamanho de video ja baixado e esperando pra ser reproduzido
+            for i in self.qi:
+                tam = len(self.qi)-1-x
+                if tam < 0:
+                    tam = 0
 
-            # print('\x1b[6;37;42m' + "measured_throughput" + '\x1b[0m', end='')
-            # print(self.measured_throughput)
-            # print('\x1b[6;37;42m' + "qi[tam]" + '\x1b[0m', end='')
-            # print(self.qi[tam])
+                # print('\x1b[6;37;42m' + "measured_throughput" + '\x1b[0m', end='')
+                # print(self.measured_throughput)
+                # print('\x1b[6;37;42m' + "qi[tam]" + '\x1b[0m', end='')
+                # print(self.qi[tam])
 
-            if self.measured_throughput > self.qi[tam]:
-                print('\x1b[6;37;42m' + "BANDA SELECIONADA" + '\x1b[0m', end='')
-                print(self.qi[tam])
-                qualidade_selecionada = tam
-                break
-            x += 1
+                if self.measured_throughput > self.qi[tam]:
+                    print('\r\n BANDA SELECIONADA \r\n ' )
+                    print(self.qi[tam])
+                    qualidade_selecionada = tam
+                    break
+                x += 1
+        else : self.qi[8]
 
-        print('\x1b[6;37;42m' + "QUALIDADE SELECIONADA" + '\x1b[0m', end='')
+        print('\r\n QUALIDADE SELECIONADA\r\n ')
         print(qualidade_selecionada)
 
         # time to define the segment quality choose to make the request
         msg.add_quality_id(self.qi[qualidade_selecionada])
+        print('\r\n Tamanho do Buffer:                        ')
+        print(repr(self.whiteboard.get_amount_video_to_play()))
+        print('\r\n')
+        #print(vars(self.whiteboard))
+        #Declare um contador antes de dar exit para poder ver o programa sendo executado   
+        #os._exit(10)
         self.send_down(msg)
 
     def handle_segment_size_response(self, msg):
 
         # debug
-        print('\x1b[6;37;41m' + "************* handle_segment_size_response ****************" + '\x1b[0m')
+        print('\r\n ************* handle_segment_size_response ****************\r\n ')
 
         # Calculo da banda do usuário
         self.measured_throughput = msg.get_bit_length() / (time.perf_counter() - self.request_time)
 
-        print('\x1b[6;37;41m' + "**************** BANDAAAA ************* " + '\x1b[0m' , end='') 
+        print('\r\n "**************** BANDAAAA ************* \r\n ') 
         print(self.measured_throughput)
         self.send_up(msg)
+
+        #Pausas
+        print('\r\n Pausas               ' )
+        print(repr(self.whiteboard.get_playback_pauses()))
+        print('\r\n')
 
     def initialize(self):
         pass
