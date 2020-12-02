@@ -37,28 +37,60 @@ class R2ANewAlgorithm1(IR2A):
         # Iniciar tempo
         self.request_time = time.perf_counter()
 
-        # Escolha da banda
+        # ALGORITMO BASEADO EM BANDA
         x = 0
-        qualidade_selecionada = 0
-        if self.whiteboard.get_amount_video_to_play() > 6: 
+        qualidade_banda = 0
             #Aqui eu to pegando o tamanho de video ja baixado e esperando pra ser reproduzido
-            for i in self.qi:
-                tam = len(self.qi)-1-x
-                if tam < 0:
-                    tam = 0
+        for i in self.qi:
+            tam = len(self.qi)-1-x
+            if tam < 0:
+                tam = 0
 
-                # print('\x1b[6;37;42m' + "measured_throughput" + '\x1b[0m', end='')
-                # print(self.measured_throughput)
-                # print('\x1b[6;37;42m' + "qi[tam]" + '\x1b[0m', end='')
-                # print(self.qi[tam])
+            # print('\x1b[6;37;42m' + "measured_throughput" + '\x1b[0m', end='')
+            # print(self.measured_throughput)
+            # print('\x1b[6;37;42m' + "qi[tam]" + '\x1b[0m', end='')
+            # print(self.qi[tam])
 
-                if self.measured_throughput > self.qi[tam]:
-                    print('\r\n BANDA SELECIONADA \r\n ' )
-                    print(self.qi[tam])
-                    qualidade_selecionada = tam
-                    break
-                x += 1
-        else : self.qi[8]
+            if self.measured_throughput > self.qi[tam]:
+                print('\r\n BANDA SELECIONADA \r\n ' )
+                print(self.qi[tam])
+                qualidade_banda = tam
+                break
+            x += 1
+
+        #ALGORITMO BASEADO EM BUFFER
+        if self.whiteboard.get_amount_video_to_play() < 10:
+        	qualidade_buffer = 11
+        elif self.whiteboard.get_amount_video_to_play() < 13:
+        	qualidade_buffer = 12
+        elif self.whiteboard.get_amount_video_to_play() < 16:
+        	qualidade_buffer = 13
+        elif self.whiteboard.get_amount_video_to_play() < 19:
+        	qualidade_buffer = 14
+        elif self.whiteboard.get_amount_video_to_play() < 22:
+        	qualidade_buffer = 15
+        elif self.whiteboard.get_amount_video_to_play() < 25:
+        	qualidade_buffer = 16
+        elif self.whiteboard.get_amount_video_to_play() < 28:
+        	qualidade_buffer = 17
+        elif self.whiteboard.get_amount_video_to_play() < 31:
+        	qualidade_buffer = 18
+        elif self.whiteboard.get_amount_video_to_play() < 34:
+        	qualidade_buffer = 19
+
+        #...
+
+        if self.whiteboard.get_amount_video_to_play() < 6: 
+        	qualidade_selecionada = 0
+	    
+        else:
+        	if qualidade_banda < qualidade_buffer:
+	        	qualidade_selecionada = qualidade_buffer
+        	else :
+        		qualidade_selecionada = qualidade_banda
+
+        
+
 
         print('\r\n QUALIDADE SELECIONADA\r\n ')
         print(qualidade_selecionada)
