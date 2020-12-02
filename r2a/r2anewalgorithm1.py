@@ -80,8 +80,8 @@ class R2ANewAlgorithm1(IR2A):
 
         #...
 
-        if self.whiteboard.get_amount_video_to_play() < 6: 
-        	qualidade_selecionada = 0
+        if self.whiteboard.get_amount_video_to_play() < 10: 
+        	qualidade_selecionada = 5
 	    
         else:
         	if qualidade_banda < qualidade_buffer:
@@ -94,6 +94,8 @@ class R2ANewAlgorithm1(IR2A):
 
         print('\r\n QUALIDADE SELECIONADA\r\n ')
         print(qualidade_selecionada)
+        print(qualidade_banda)
+        print(qualidade_buffer)
 
         # time to define the segment quality choose to make the request
         msg.add_quality_id(self.qi[qualidade_selecionada])
