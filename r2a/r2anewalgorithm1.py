@@ -1,5 +1,6 @@
 from player.parser import *
 from r2a.ir2a import IR2A
+from statistics import mean
 
 import time
 
@@ -10,10 +11,13 @@ class R2ANewAlgorithm1(IR2A):
         self.parsed_mpd = ''
         self.qi = []
         self.request_time = 0
-        self.measured_throughput = 0
+        self.measured_throughput = []
 
     def handle_xml_request(self, msg):
         print("**************** handle_xml_request ****************")
+
+        # Iniciar tempo
+        self.request_time = time.perf_counter()
         
         self.send_down(msg)
 
@@ -22,6 +26,9 @@ class R2ANewAlgorithm1(IR2A):
         # getting qi list
         self.parsed_mpd = parse_mpd(msg.get_payload())
         self.qi = self.parsed_mpd.get_qi()
+
+        # Calculo da banda do usuário
+        self.measured_throughput.append(msg.get_bit_length()/(time.perf_counter() - self.request_time))
 
         self.send_up(msg)
 
@@ -38,20 +45,19 @@ class R2ANewAlgorithm1(IR2A):
         self.request_time = time.perf_counter()
 
         # ALGORITMO BASEADO EM BANDA
+
+        #média das bandas
+        media = mean(self.measured_throughput)/2
+        media = 0.9*media
+
         x = 0
         qualidade_banda = 0
-            #Aqui eu to pegando o tamanho de video ja baixado e esperando pra ser reproduzido
         for i in self.qi:
             tam = len(self.qi)-1-x
             if tam < 0:
                 tam = 0
 
-            # print('\x1b[6;37;42m' + "measured_throughput" + '\x1b[0m', end='')
-            # print(self.measured_throughput)
-            # print('\x1b[6;37;42m' + "qi[tam]" + '\x1b[0m', end='')
-            # print(self.qi[tam])
-
-            if self.measured_throughput > self.qi[tam]:
+            if media > self.qi[tam]:
                 print('\r\n BANDA SELECIONADA \r\n ' )
                 print(self.qi[tam])
                 qualidade_banda = tam
@@ -81,8 +87,7 @@ class R2ANewAlgorithm1(IR2A):
         #...
 
         if self.whiteboard.get_amount_video_to_play() < 10: 
-        	qualidade_selecionada = 5
-	    
+        	qualidade_selecionada = 5	    
         else:
         	if qualidade_banda < qualidade_buffer:
 	        	qualidade_selecionada = qualidade_buffer
@@ -98,13 +103,15 @@ class R2ANewAlgorithm1(IR2A):
         print(qualidade_buffer)
 
         # time to define the segment quality choose to make the request
-        msg.add_quality_id(self.qi[qualidade_selecionada])
         print('\r\n Tamanho do Buffer:                        ')
         print(repr(self.whiteboard.get_amount_video_to_play()))
         print('\r\n')
         #print(vars(self.whiteboard))
         #Declare um contador antes de dar exit para poder ver o programa sendo executado   
         #os._exit(10)
+
+        msg.add_quality_id(self.qi[qualidade_selecionada])
+
         self.send_down(msg)
 
     def handle_segment_size_response(self, msg):
@@ -113,7 +120,7 @@ class R2ANewAlgorithm1(IR2A):
         print('\r\n ************* handle_segment_size_response ****************\r\n ')
 
         # Calculo da banda do usuário
-        self.measured_throughput = msg.get_bit_length() / (time.perf_counter() - self.request_time)
+        self.measured_throughput.append(msg.get_bit_length() / (time.perf_counter() - self.request_time))
 
         print('\r\n "**************** BANDAAAA ************* \r\n ') 
         print(self.measured_throughput)
